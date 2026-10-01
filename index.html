@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, viewport-fit=cover">
 <meta name="theme-color" content="#ebe4d4" id="meta-theme">
-<title>JW-Life v5.3.55</title>
+<title>JW-Life v5.3.63</title>
 <meta name="description" content="從十九歲開始，每年分配一次時間。信仰、學業、工作與健康，都要自己選。">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&family=Noto+Serif+TC:wght@500;700;900&family=ZCOOL+XiaoWei&display=swap" rel="stylesheet">
@@ -701,7 +701,7 @@ body.desk #tools-desk .btn{margin:0;text-align:center}
 
 <!-- 開場：理念、種子、讀檔 -->
 <div id="start" class="sheet">
-  <div class="start-ver">v5.3.52</div>
+  <div class="start-ver">v5.3.63</div>
   <div class="kicker">NOTEBOOK</div>
   <h1 class="brand-mark">JW-Life</h1>
   <div class="note">
@@ -3801,7 +3801,7 @@ function rollPartnerJob(age, specialEligible){
   for (const item of base){
     r -= item.weight;
     if (r < 0){
-      const high = item.kind === 'full' ? chance(30) : item.kind === 'part' ? chance(25) : false;
+      const high = item.kind === 'full' ? chance(10) : item.kind === 'part' ? chance(20) : false;
       return { kind:item.kind, high };
     }
   }
@@ -3873,9 +3873,9 @@ function partnerProfileText(p){
 function spouseIncomeBase(p){
   /* 配偶每回固定入帳（不含加班），範圍比照玩家工作表與全時委派津貼。 */
   if (!p || !p.jobKind || p.jobKind === 'none') return 0;
-  if (p.jobKind === 'co') return 180000;
-  if (p.jobKind === 'bethel' || p.jobKind === 'tempBethel') return 70000;
-  if (['tempSpecialPioneer','specialPioneer','tempLdc','ldc'].includes(p.jobKind)) return 150000;
+  if (p.jobKind === 'co') return 150000;
+  if (p.jobKind === 'bethel' || p.jobKind === 'tempBethel') return 120000;
+  if (['tempSpecialPioneer','specialPioneer','tempLdc','ldc'].includes(p.jobKind)) return 250000;
   if (p.jobKind === 'full' && p.jobHigh) return ri(76, 104) * 10000;
   if (p.jobKind === 'full') return ri(44, 60) * 10000;
   if (p.jobKind === 'part' && p.jobHigh) return ri(24, 44) * 10000;
@@ -4430,7 +4430,7 @@ function estimateYearMoney(alloc){
     inn += S.milType === 'alt' ? 120000 : 80000;
   } else if (isServiceAssign()){
     const k = S.service && S.service.kind;
-    inn += k === 'co' ? 180000 : (k === 'bethel' ? 70000 : 150000);
+    inn += k === 'co' ? 150000 : (k === 'bethel' ? 120000 : 250000);
   } else if (S.job){
     inn += jobIncomePreview(tp).inn;
   }
@@ -4448,7 +4448,7 @@ function estimateYearMoney(alloc){
     const mode = LIFE_MODE[S.lifeMode];
     let live = Math.round((mode.lo + (mode.hi - mode.lo) * t) * 10000);
     if (S.partner && S.partner.stage === 'married') live = Math.round(live * MARRIED_LIVE_MUL);
-    if (isServiceAssign() && S.service.kind === 'bethel') live = Math.round(live * 0.35);
+    if (isServiceAssign() && (S.service.kind === 'bethel' || S.service.kind === 'co')) live = Math.round(live * 0.35);
     if (!S.job && !isServiceAssign()) live = Math.round(live * 0.7);
     out += live;
   }
@@ -4458,9 +4458,9 @@ function estimateYearMoney(alloc){
 }
 function spouseIncomeBaseMid(p){
   if (!p || !p.jobKind || p.jobKind === 'none') return 0;
-  if (p.jobKind === 'co') return 180000;
-  if (p.jobKind === 'bethel' || p.jobKind === 'tempBethel') return 70000;
-  if (['tempSpecialPioneer','specialPioneer','tempLdc','ldc'].includes(p.jobKind)) return 150000;
+  if (p.jobKind === 'co') return 150000;
+  if (p.jobKind === 'bethel' || p.jobKind === 'tempBethel') return 120000;
+  if (['tempSpecialPioneer','specialPioneer','tempLdc','ldc'].includes(p.jobKind)) return 250000;
   if (p.jobKind === 'full' && p.jobHigh) return 900000;
   if (p.jobKind === 'full') return 520000;
   if (p.jobKind === 'part' && p.jobHigh) return 340000;
@@ -4562,9 +4562,12 @@ function showAlloc(){
       h += '</div></div>';
     }
     h += '<div id="tp-rows"></div>';
-    if ((S.phase === 'WORK' || S.phase === 'UNI' || S.phase === 'START') && !S.job && !isServiceAssign() && S.phase !== 'MIL' && (S._jobHuntCount || 0) < 3){
-      const jobLab = (S.phase === 'UNI' || isStudent()) ? '找兼職工作' : '找工作';
-      h += '<button class="btn findjob" id="tp-findjob">' + jobLab + '（本回合剩 ' + (3 - (S._jobHuntCount || 0)) + ' 次） ▸</button>';
+    const canPlayerFindJob = (S.phase === 'WORK' || S.phase === 'UNI' || S.phase === 'START') && !S.job && !isServiceAssign() && S.phase !== 'MIL' && (S._jobHuntCount || 0) < 3;
+    const canPartnerFindJob = !!(S.partner && S.partner.stage === 'married' && !isServiceAssign() && S.partner.jobKind !== 'co' && !['tempSpecialPioneer','specialPioneer','tempLdc','ldc','tempBethel','bethel'].includes(S.partner.jobKind) && (S.partner.jobKind === 'none' || S.partner.jobKind === 'part' || S.partner.jobKind === 'full') && (S.partner._jobHuntCount || 0) < 3);
+    if (canPlayerFindJob || canPartnerFindJob){
+      const leftPlayer = 3 - (S._jobHuntCount || 0);
+      const leftPartner = 3 - (S.partner && S.partner._jobHuntCount || 0);
+      h += '<button class="btn findjob" id="tp-findjob">找工作 ▸</button>';
     }
     h += '<button class="btn main" id="tp-ok">確認這一年的安排 ▸</button>';
     h += '<div class="alloc-soft" id="alloc-soft"></div>';
@@ -4850,7 +4853,7 @@ function evHusbandCircuit(){
     const n = rollActingVisits();
     h.visits = (h.visits || 0) + n;
     pendingDiary('info', '代理探訪', '這一年' + S.partner.name + '收到 ' + n + ' 次代理探訪委派。（累積 ' + h.visits + ' 次）', () => {
-      if ((h.visits || 0) >= 8 && !hasDependentChild() && S.pregDue == null && chance(6)){
+      if ((h.visits || 0) >= 8 && S.partner.age >= 25 && S.partner.age < 50 && !hasDependentChild() && S.pregDue == null && chance(10)){
         ask('分區監督', '分部來訊：要委任' + S.partner.name + '擔任分區監督。接受的話，你們都要放下工作一起探訪會眾。', [
           {t:'一起接受', f:() => {
             becomeCoWife();
@@ -4864,7 +4867,7 @@ function evHusbandCircuit(){
     });
     return;
   }
-  if (husHas('區域大會講者') && !hasDependentChild() && S.pregDue == null && chance(6)){
+  if (husHas('區域大會講者') && !hasDependentChild() && S.pregDue == null && chance(10)){
     ask('代理分區監督', S.partner.name + '被問到要不要擔任代理分區監督。你們要接受嗎？', [
       {t:'接受', f:() => {
         husAdd('代理分區監督');
@@ -4875,10 +4878,13 @@ function evHusbandCircuit(){
     ]);
     return;
   }
-  if (husYears('長老') < 3){ nextStep(); return; }
-  const spine = ASM_SPEAKER.filter(r => {
+  if (!husHas('長老')){ nextStep(); return; }
+  const husbandSpine = [
+    { tag:'分區大會講者', p:20, needPrior:null },
+    { tag:'區域大會講者', p:20, needPrior:'分區大會講者' }
+  ];
+  const spine = husbandSpine.filter(r => {
     if (husHas(r.tag)) return false;
-    if (husYears('長老') < r.minElder) return false;
     if (r.needPrior && !husHas(r.needPrior)) return false;
     return true;
   });
@@ -4910,7 +4916,7 @@ function evCircuitTrack(){
     const n = rollActingVisits();
     S.asm.visits = (S.asm.visits || 0) + n;
     pendingDiary('info', '代理探訪', '這一年你收到 ' + n + ' 次代理探訪會眾的委派。（累積 ' + S.asm.visits + ' 次）', () => {
-      if ((S.asm.visits || 0) >= 8 && !hasDependentChild() && S.pregDue == null && chance(6)){
+      if ((S.asm.visits || 0) >= 8 && S.age >= 25 && S.age < 50 && !hasDependentChild() && S.pregDue == null && chance(10)){
         ask('分區監督', '分部來訊：要委任你擔任分區監督。接受的話必須放下工作，崇拜時間也會明顯增加。', [
           {t:'接受委任', f:() => {
             becomeCircuitOverseer();
@@ -4924,7 +4930,7 @@ function evCircuitTrack(){
     });
     return;
   }
-  if (has('區域大會講者') && !hasDependentChild() && S.pregDue == null && chance(6)){
+  if (has('區域大會講者') && !hasDependentChild() && S.pregDue == null && chance(10)){
     ask('代理分區監督', '你被問到：願不願意擔任代理分區監督？', [
       {t:'接受', f:() => {
         addTag('代理分區監督', '開始代理分區監督');
@@ -5793,9 +5799,9 @@ function settleYear(){
     S.job = null;
     if (S.lifeMode === 'enjoy' || S.lifeMode === 'comfort') S.lifeMode = 'normal';
     const k = S.service.kind;
-    let stip = 150000;
-    if (k === 'bethel') stip = 70000;
-    if (k === 'co') stip = 180000;
+    let stip = 250000;
+    if (k === 'bethel') stip = 120000;
+    if (k === 'co') stip = 150000;
     S.money += stip;
     notes.push('服務津貼 +' + fmtMoney(stip));
   } else if (S.phase === 'MIL'){
@@ -5819,7 +5825,7 @@ function settleYear(){
     const spIn = Math.round(spouseIncomeBase(S.partner) * SPOUSE_INCOME_MUL);
     if (spIn > 0){
       S.money += spIn;
-      notes.push('配偶收入 +' + fmtMoney(spIn) + '（' + partnerJobLabel(S.partner) + '，入帳五成）');
+      notes.push('配偶收入 +' + fmtMoney(spIn) + '（' + partnerJobLabel(S.partner) + '，完整入帳）');
     }
   }
   let live = 0, tuition = 0;
@@ -5838,7 +5844,7 @@ function settleYear(){
     if (S.partner && S.partner.stage === 'married'){
       live = Math.round(live * MARRIED_LIVE_MUL);
     }
-    if (isServiceAssign() && S.service.kind === 'bethel') live = Math.round(live * 0.35);
+    if (isServiceAssign() && (S.service.kind === 'bethel' || S.service.kind === 'co')) live = Math.round(live * 0.35);
     if (!S.job && !isServiceAssign()){
       live = Math.round(live * 0.7);
       notes.push('目前沒有工作，生活費先按七成算。');
@@ -6075,6 +6081,51 @@ function takeJobOffer(kind, then){
   milestone(lab);
   pendingDiary(high ? 'gold' : '', kind === 'full' ? '全職工作' : '兼職工作', '你找到一份' + lab + '工作。', then);
 }
+function partnerJobSearchFailChance(){
+  const age = Math.floor((S.partner && S.partner.age) || 0);
+  const p = 0.10 + (age - 30) * 0.006;
+  return clamp(p, 0.05, 0.50);
+}
+function takePartnerJobOffer(kind, then){
+  if (!S.partner) { if (then) then(); return; }
+  S.partner._jobHuntCount = (S.partner._jobHuntCount || 0) + 1;
+  if (R() < partnerJobSearchFailChance()){
+    pendingDiary('info', '配偶工作', S.partner.name + '這次沒有找到合適的工作。', then);
+    return;
+  }
+  const high = kind === 'full' ? chance(10) : chance(20);
+  S.partner.jobKind = kind;
+  S.partner.jobHigh = high;
+  const lab = (high ? '高薪' : '一般') + (kind === 'full' ? '全職' : '兼職');
+  pendingDiary(high ? 'gold' : '', '配偶工作', S.partner.name + '找到一份' + lab + '工作。', then);
+}
+function findPartnerJobEvent(then){
+  if (!S.partner || S.partner.stage !== 'married'){
+    pendingDiary('info', '配偶工作', '目前沒有已婚配偶可以調整工作。', then || showAlloc);
+    return;
+  }
+  if (isServiceAssign()){
+    pendingDiary('info', '配偶工作', '目前服務安排期間不能透過一般工作功能調整配偶工作。', then || showAlloc);
+    return;
+  }
+  const special = ['co','tempSpecialPioneer','specialPioneer','tempLdc','ldc','tempBethel','bethel'];
+  if (special.includes(S.partner.jobKind)){
+    pendingDiary('info', '配偶工作', S.partner.name + '目前屬於特殊全時服務，不能透過一般「找工作」功能調整。', then || showAlloc);
+    return;
+  }
+  const used = S.partner._jobHuntCount || 0;
+  if (used >= 3){
+    pendingDiary('info', '找配偶工作', '本回合配偶已經找過 3 次工作，下一回合才能再次找工作。', then || showAlloc);
+    return;
+  }
+  const failPct = Math.round(partnerJobSearchFailChance() * 100);
+  const left = 3 - used;
+  ask('找工作', S.partner.name + '目前還可以找 ' + left + ' 次工作。', [
+    {t:'找全職工作', s:'約 ' + failPct + '% 找不到；高薪約 30%', f:() => takePartnerJobOffer('full', then)},
+    {t:'找兼職工作', s:'約 ' + failPct + '% 找不到；高薪約 25%', f:() => takePartnerJobOffer('part', then)},
+    {t:'先不找工作', f:() => pendingDiary('info', '配偶工作', S.partner.name + '決定先不找工作。', then)}
+  ]);
+}
 function findJobEvent(then){
   if (S.phase === 'MIL'){
     pendingDiary('info', '工作', '服役期間不能另外做全職或兼職。', then || showAlloc);
@@ -6231,6 +6282,7 @@ function beginYear(){
   S._quitThisYear = false;
   S._jobLostThisYear = false;
   S._jobHuntCount = 0;
+  if (S.partner) S.partner._jobHuntCount = 0;
   S._jobPay = S.job ? { kind: S.job.kind, high: !!S.job.high } : null;
   if (!S.job) S._fullOtStreak = 0;
   S._extraNeed = {};
@@ -6378,14 +6430,50 @@ function evElder(){
 /* =========================================================
    11. 結局
    ========================================================= */
+function endingProfile(id){
+  /* 結局四版本：愛心／信心 60 以上視為高。 */
+  const loveHigh = Number(S && S.love) >= 60;
+  const faithHigh = Number(S && S.faith) >= 60;
+  const key = loveHigh && faithHigh ? 'both'
+    : faithHigh ? 'faith'
+    : loveHigh ? 'love'
+    : 'low';
+  const data = {
+    sick:{
+      low:{ cls:'bad', title:'擔憂與遺憾', html:'身體一天比一天沉。你心裡有許多擔心，也有一些還來不及說完的話。這一生在不安與遺憾中停在了這一頁。' },
+      faith:{ cls:'gold', title:'挺身面對最後一程', html:'你相信自己仍能把目光放在未來，面對最後一程；只是與弟兄姐妹相處時，有些摩擦與不和也留下了遺憾。' },
+      love:{ cls:'gold', title:'彼此照顧，仍有不安', html:'你一直願意關心和幫助身邊的弟兄姐妹。即使到了最後，心裡仍有對病情與未來的害怕，但你沒有忘記身邊的人。' },
+      both:{ cls:'gold', title:'彼此扶持走完最後一程', html:'你與弟兄姐妹彼此鼓勵、互相扶持。面對身體的衰弱，你仍把信心放在未來，也珍惜身邊每一個人。' }
+    },
+    accident:{
+      low:{ cls:'bad', title:'突如其來的恐慌', html:'那一天來得太突然。你心裡有許多擔心與害怕，還沒有準備好面對這個結局，日記便停在了這一頁。' },
+      faith:{ cls:'gold', title:'挺身昂首，卻留下摩擦', html:'你一直努力保持信心，相信耶和華會施行拯救；只是與弟兄姐妹相處時仍有不和，有些問題還沒有來得及解決。' },
+      love:{ cls:'gold', title:'彼此幫助，仍然害怕', html:'你習慣在弟兄姐妹需要時伸出援手，也得到許多人的關心。只是面對突如其來的事情，你心裡仍有不少害怕。' },
+      both:{ cls:'gold', title:'彼此鼓勵，挺身昂首', html:'你與弟兄姐妹彼此鼓勵、互相幫助。即使意外來得突然，你仍努力保持信心，和身邊的人一起挺身昂首。' }
+    },
+    tribulation:{
+      low:{ cls:'bad', title:'擔憂恐慌', html:'外面的消息一個接一個。你看著周圍的變化，心裡充滿擔憂與恐慌，不知道接下來會發生什麼，也很難平靜下來。' },
+      faith:{ cls:'gold', title:'挺身昂首迎接拯救', html:'局勢越來越緊張，你仍努力挺身昂首，站著觀看耶和華施行拯救，也做好準備迎接未來；只是與弟兄姐妹之間的相處出現不和，有些問題讓你在關鍵時刻感到困擾。' },
+      love:{ cls:'gold', title:'彼此幫助，仍然害怕', html:'面對越來越緊張的局勢，你與弟兄姐妹互相幫助、彼此照顧。可是即使身邊有人陪伴，你心裡仍然越來越害怕，難以完全平靜。' },
+      both:{ cls:'gold', title:'彼此鼓勵，一起挺身昂首', html:'局勢越來越緊張，你與弟兄姐妹互相鼓勵、彼此扶持，一起做好準備。你們挺身昂首，懷著信心觀看耶和華施行拯救，迎接未來。' }
+    },
+    future:{
+      low:{ cls:'bad', title:'帶著擔憂走到這裡', html:'你走到了六十五歲。回頭看這一生，仍有許多擔憂與害怕沒有真正放下。日記在這裡停住，留下許多沒有答案的問題。' },
+      faith:{ cls:'gold', title:'帶著信心迎向未來', html:'你走到了六十五歲。一路上，你努力挺身昂首，把信心放在未來；只是與弟兄姐妹之間有些不和，仍留下值得反省的地方。' },
+      love:{ cls:'gold', title:'一路彼此幫助', html:'你走到了六十五歲。這一路你與弟兄姐妹互相幫助，留下不少珍貴的回憶；只是回望未來時，心裡仍有一些害怕。' },
+      both:{ cls:'gold', title:'彼此鼓勵走到這裡', html:'你走到了六十五歲。一路上，你與弟兄姐妹互相鼓勵、彼此扶持，也努力挺身昂首迎接未來。這些共同走過的日子，成為一生的重要記憶。' }
+    },
+    infant:{
+      low:{ cls:'info', title:'夭折', html:'不幸地，你還沒有記憶便夭折了……' },
+      faith:{ cls:'info', title:'夭折', html:'不幸地，你還沒有記憶便夭折了……' },
+      love:{ cls:'info', title:'夭折', html:'不幸地，你還沒有記憶便夭折了……' },
+      both:{ cls:'info', title:'夭折', html:'不幸地，你還沒有記憶便夭折了……' }
+    }
+  };
+  return (data[id] || data.future)[key];
+}
 function endingWords(id){
-  return {
-    sick:{ cls:'bad', title:'日記停在這一頁', html:'身體一天比一天沉。有些話還沒寫完，筆卻拿不穩了。這本日記在這裡停住。' },
-    accident:{ cls:'bad', title:'沒有料到的一天', html:'那一天和平常沒有兩樣。事發的時候，你甚至來不及把這頁寫完。' },
-    tribulation:{ cls:'gold', title:'大患難開始了', html:'外面的消息一個接一個。聚會裡的人安靜下來。你合上這本日記，不知道下一頁還會不會用同一支筆。' },
-    future:{ cls:'gold', title:'六十五歲', html:'你走到了六十五歲。未來會怎樣，此刻還看不到結局。這本日記先合上。' },
-    infant:{ cls:'info', title:'夭折', html:'不幸地，你還沒有記憶便夭折了……' }
-  }[id] || { cls:'info', title:'日記的最後一頁', html:'' };
+  return endingProfile(id);
 }
 function lastPageThenEnd(id, extraHtml){
   if (S){ S.done = true; S.endId = id; }
@@ -6587,21 +6675,17 @@ function districtTrackLine(){
 }
 function paintEnding(id, line){
   stepQ = []; actClear();
-  const title = {
+  const kindTitle = {
     infant:'夭折',
     sick:'生病過世',
     accident:'意外過世',
     tribulation:'大患難',
-    future:'未來會怎樣'
+    future:'六十五歲'
   }[id] || id;
-  const desc = {
-    infant:'不幸地，你還沒有記憶便夭折了......',
-    sick: line || '健康歸零，這本日記在這裡停住。',
-    accident: line || '意外過世。',
-    tribulation: line || '大患難開始。',
-    future: line || '年滿六十五歲。未來會怎樣，此刻還看不到結局。'
-  }[id];
-  if (S && !(S.milestones || []).some(m => m.text === title)) milestone(title);
+  const profile = endingProfile(id);
+  const title = profile ? profile.title : kindTitle;
+  const desc = line || (profile ? profile.html : '');
+  if (S && !(S.milestones || []).some(m => m.text === kindTitle)) milestone(kindTitle);
   if (!(S && S._preview)) saveGame();
 
   const app = $('app');
@@ -6616,10 +6700,10 @@ function paintEnding(id, line){
     : (id === 'future' || id === 'tribulation') ? 'tone-gold' : '';
   el.className = 'sheet enter ' + tone;
 
-  let body = '<div class="start-ver">v5.3.52</div>' +
+  let body = '<div class="start-ver">v5.3.63</div>' +
     '<div class="brand"><div class="kicker">THE LAST PAGE</div>' +
     '<h1 class="brand-mark">JW-Life</h1></div>' +
-    '<p class="end-kind">' + escText(title) + '</p>' +
+    '<p class="end-kind">' + escText(kindTitle) + (profile && profile.title !== kindTitle ? '｜' + escText(profile.title) : '') + '</p>' +
     '<div class="note end-lead"><p>' + desc + '</p></div>';
   const refs = endingReflections();
   if (refs.length){
@@ -7019,29 +7103,86 @@ function setAllocTools(onAfter){
       ]);
       return;
     }
-    remTag('正規先驅');
-    finish('你停止了正規先驅服務。崇拜的必要時間少了。');
-  });
-  bind('quit', () => {
-    ask('辭掉工作', '確定要辭掉目前的工作嗎？辭職後，本回合不再有工作時間可分配。', [
-      {t:'確定辭職', warn:true, f:() => {
-        S._quitThisYear = true;
-        S._jobPay = null;
-        S.job = null;
-        clearStatus('workStress');
-        S._fullOtStreak = 0;
-        S.tpPlan = null;
-        milestone('辭去工作');
-        board();
-        pendingDiary('info', '辭職', '你辭去了工作。本回合已沒有工作，可按「找工作」重新尋找工作。', () => {
-          S.tpPlan = null;
-          showAlloc();
-        });
+    ask('停止正規先驅', '確定要停止正規先驅服務嗎？停止後，崇拜的必要時間會減少。', [
+      {t:'確定停止', warn:true, f:() => {
+        remTag('正規先驅');
+        finish('你停止了正規先驅服務。崇拜的必要時間少了。');
       }},
       {t:'取消', f:() => { if (onAfter) onAfter(); }}
     ]);
   });
-  bind('job', () => findJobEvent(() => { S.tpPlan = null; showAlloc(); }));
+  bind('quit', () => {
+    const playerHasGeneralJob = !!(S.job && !isServiceAssign() && S.phase !== 'MIL');
+    const partnerHasGeneralJob = !!(S.partner && S.partner.stage === 'married' && ['part','full'].includes(S.partner.jobKind));
+    if (!playerHasGeneralJob && !partnerHasGeneralJob){
+      pendingDiary('info', '辭掉工作', '目前沒有可以透過一般工作功能辭掉的工作。', () => { if (onAfter) onAfter(); });
+      return;
+    }
+    const finishPlayerQuit = () => {
+      S._quitThisYear = true;
+      S._jobPay = null;
+      S.job = null;
+      clearStatus('workStress');
+      S._fullOtStreak = 0;
+      S.tpPlan = null;
+      milestone('辭去工作');
+      board();
+      pendingDiary('info', '辭職', '你辭去了工作。本回合已沒有工作，可按「找工作」重新尋找工作。', () => {
+        S.tpPlan = null;
+        showAlloc();
+      });
+    };
+    const finishPartnerQuit = () => {
+      const name = S.partner.name;
+      S.partner.jobKind = 'none';
+      S.partner.jobHigh = false;
+      board();
+      pendingDiary('info', '配偶辭職', name + '辭去了工作。之後可以再透過「找工作」替配偶尋找工作。', () => {
+        S.tpPlan = null;
+        showAlloc();
+      });
+    };
+    if (playerHasGeneralJob && partnerHasGeneralJob){
+      ask('辭掉工作', '要調整誰的工作？', [
+        {t:'辭掉我自己的工作', f:() => ask('辭掉工作', '確定要辭掉目前的工作嗎？辭職後，本回合不再有工作時間可分配。', [
+          {t:'確定辭職', warn:true, f:finishPlayerQuit},
+          {t:'取消', f:() => { if (onAfter) onAfter(); }}
+        ])},
+        {t:'讓' + S.partner.name + '辭掉工作', f:() => ask('配偶辭職', '確定要讓' + S.partner.name + '辭掉目前的工作嗎？', [
+          {t:'確定辭職', warn:true, f:finishPartnerQuit},
+          {t:'取消', f:() => { if (onAfter) onAfter(); }}
+        ])},
+        {t:'取消', f:() => { if (onAfter) onAfter(); }}
+      ]);
+      return;
+    }
+    if (playerHasGeneralJob){
+      ask('辭掉工作', '確定要辭掉目前的工作嗎？辭職後，本回合不再有工作時間可分配。', [
+        {t:'確定辭職', warn:true, f:finishPlayerQuit},
+        {t:'取消', f:() => { if (onAfter) onAfter(); }}
+      ]);
+      return;
+    }
+    ask('配偶辭職', '確定要讓' + S.partner.name + '辭掉目前的工作嗎？', [
+      {t:'確定辭職', warn:true, f:finishPartnerQuit},
+      {t:'取消', f:() => { if (onAfter) onAfter(); }}
+    ]);
+  });
+  bind('job', () => {
+    const playerCan = (S.phase === 'WORK' || S.phase === 'UNI' || S.phase === 'START') && !S.job && !isServiceAssign() && S.phase !== 'MIL' && (S._jobHuntCount || 0) < 3;
+    const partnerCan = !!(S.partner && S.partner.stage === 'married' && !isServiceAssign() && !['co','tempSpecialPioneer','specialPioneer','tempLdc','ldc','tempBethel','bethel'].includes(S.partner.jobKind) && (S.partner.jobKind === 'none' || S.partner.jobKind === 'part' || S.partner.jobKind === 'full') && (S.partner._jobHuntCount || 0) < 3);
+    if (playerCan && partnerCan){
+      ask('找工作', '要替誰找工作？', [
+        {t:'替我自己找工作', f:() => findJobEvent(() => { S.tpPlan = null; showAlloc(); })},
+        {t:'替' + S.partner.name + '找工作', f:() => findPartnerJobEvent(() => { S.tpPlan = null; showAlloc(); })},
+        {t:'先不找工作', f:() => { if (onAfter) onAfter(); }}
+      ]);
+      return;
+    }
+    if (playerCan){ findJobEvent(() => { S.tpPlan = null; showAlloc(); }); return; }
+    if (partnerCan){ findPartnerJobEvent(() => { S.tpPlan = null; showAlloc(); }); return; }
+    findJobEvent(() => { S.tpPlan = null; showAlloc(); });
+  });
 }
 function ask(name, body, opts){
   const head = '事件｜' + name + (body ? '<span class="act-body">' + body + '</span>' : '');
@@ -7356,12 +7497,19 @@ $('btn-load').onclick = () => {
 
 function buildPreviewState(id, trait){
   seedInit(SEED || 'preview34');
-  const loveFirst = trait !== 'faith';
+  /* 結局預覽測試：四種組合直接使用 59／60，方便測試門檻邊界。 */
+  const stats = {
+    low:  { love:59, faith:59 },
+    faith:{ love:59, faith:60 },
+    love: { love:60, faith:59 },
+    both: { love:60, faith:60 }
+  };
+  const pick = stats[trait] || stats.both;
   const ch = {
     gender:'女', mood:'和諧', wealth:'普通', parent:'見證人', parentKind:'見證人1',
     wit:108,
-    love: loveFirst ? 86 : 61,
-    faith: loveFirst ? 64 : 88,
+    love: pick.love,
+    faith: pick.faith,
     bible: 72, skill: 58, health: 74,
     story:'', lines:[]
   };
@@ -7399,18 +7547,23 @@ function buildPreviewState(id, trait){
   if (!id) return;
   const allowed = { future:1, sick:1, accident:1, tribulation:1, infant:1 };
   if (!allowed[id]) return;
+  const traits = { low:1, faith:1, love:1, both:1 };
+  const trait = traits[q.get('trait')] ? q.get('trait') : 'both';
   if (q.get('seed')) SEED = q.get('seed');
   else if (!SEED) SEED = newSeed();
   const start = $('start');
   if (start) start.style.display = 'none';
+
+  /* 夭折沒有愛心／信心累積，因此維持單一版本。 */
   if (id === 'infant'){
     S = null;
     revealEnding('infant');
     return;
   }
-  buildPreviewState(id, q.get('trait'));
-  const w = endingWords(id);
-  revealEnding(id, w.html);
+
+  buildPreviewState(id, trait);
+  /* 使用正式的「結局文章 → 確認 → 最終結算」流程測試。 */
+  lastPageThenEnd(id);
 })();
 </script>
 </body>
