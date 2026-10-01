@@ -6121,8 +6121,8 @@ function findPartnerJobEvent(then){
   const failPct = Math.round(partnerJobSearchFailChance() * 100);
   const left = 3 - used;
   ask('找工作', S.partner.name + '目前還可以找 ' + left + ' 次工作。', [
-    {t:'找全職工作', s:'約 ' + failPct + '% 找不到；高薪約 30%', f:() => takePartnerJobOffer('full', then)},
-    {t:'找兼職工作', s:'約 ' + failPct + '% 找不到；高薪約 25%', f:() => takePartnerJobOffer('part', then)},
+    {t:'找全職工作', s:'約 ' + failPct + '% 找不到；高薪約 10%', f:() => takePartnerJobOffer('full', then)},
+    {t:'找兼職工作', s:'約 ' + failPct + '% 找不到；高薪約 20%', f:() => takePartnerJobOffer('part', then)},
     {t:'先不找工作', f:() => pendingDiary('info', '配偶工作', S.partner.name + '決定先不找工作。', then)}
   ]);
 }
