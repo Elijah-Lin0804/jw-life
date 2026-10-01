@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, viewport-fit=cover">
 <meta name="theme-color" content="#ebe4d4" id="meta-theme">
-<title>JW-Life v5.3.63</title>
+<title>JW-Life v5.3.65</title>
 <meta name="description" content="從十九歲開始，每年分配一次時間。信仰、學業、工作與健康，都要自己選。">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&family=Noto+Serif+TC:wght@500;700;900&family=ZCOOL+XiaoWei&display=swap" rel="stylesheet">
@@ -701,7 +701,7 @@ body.desk #tools-desk .btn{margin:0;text-align:center}
 
 <!-- 開場：理念、種子、讀檔 -->
 <div id="start" class="sheet">
-  <div class="start-ver">v5.3.63</div>
+  <div class="start-ver">v5.3.65</div>
   <div class="kicker">NOTEBOOK</div>
   <h1 class="brand-mark">JW-Life</h1>
   <div class="note">
@@ -4125,7 +4125,9 @@ function requiredTP(){
   return req;
 }
 function isPioneerWithJob(){
-  return !!(S && S.job && !isServiceAssign() && (has('正規先驅') || has('臨時特別先驅') || has('特別先驅')));
+  /* 只有正規先驅仍有世俗工作時，才適用「工作＋崇拜」額外健康負擔。
+     臨時特別先驅／特別先驅的全時服務本身視為工作，因此不適用。 */
+  return !!(S && S.job && !isServiceAssign() && has('正規先驅'));
 }
 function pioneerLoadC(alloc){
   alloc = alloc || {};
@@ -4133,9 +4135,10 @@ function pioneerLoadC(alloc){
 }
 function pioneerLoadHealth(alloc){
   if (!isPioneerWithJob()) return 0;
-  const extra = pioneerLoadC(alloc) - PIO_LOAD_LINE;
-  if (extra <= 0) return 0;
-  return -Math.min(8, Math.round(Math.pow(1.6, extra / 2)));
+  const c = pioneerLoadC(alloc);
+  if (c >= 20 && c <= 25) return -1;
+  if (c >= 26) return -2;
+  return 0;
 }
 function showLifeModeUI(){
   return !!(S && S.phase === 'WORK' && !isStudent());
@@ -6700,7 +6703,7 @@ function paintEnding(id, line){
     : (id === 'future' || id === 'tribulation') ? 'tone-gold' : '';
   el.className = 'sheet enter ' + tone;
 
-  let body = '<div class="start-ver">v5.3.63</div>' +
+  let body = '<div class="start-ver">v5.3.65</div>' +
     '<div class="brand"><div class="kicker">THE LAST PAGE</div>' +
     '<h1 class="brand-mark">JW-Life</h1></div>' +
     '<p class="end-kind">' + escText(kindTitle) + (profile && profile.title !== kindTitle ? '｜' + escText(profile.title) : '') + '</p>' +
