@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, viewport-fit=cover">
 <meta name="theme-color" content="#ebe4d4" id="meta-theme">
-<title>JW-Life v5.3.65</title>
+<title>JW-Life v5.3.80</title>
 <meta name="description" content="從十九歲開始，每年分配一次時間。信仰、學業、工作與健康，都要自己選。">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&family=Noto+Serif+TC:wght@500;700;900&family=ZCOOL+XiaoWei&display=swap" rel="stylesheet">
@@ -374,6 +374,11 @@ html[data-theme="parchment"]{--tp-used:#8b6634;--tp-used-text:#f8e9c9}
 .tprow .pm{display:flex;align-items:center;gap:6px}
 .tprow button.pmb{width:32px;height:32px;border-radius:8px;border:1px solid var(--ctrl-bd);background:var(--ctrl);color:var(--ink);font-size:18px;cursor:pointer}
 .tprow .val{width:28px;text-align:center;font-family:var(--serif);font-weight:700}
+/* 時間分配狀態色：按鈕、數字與標籤同步顯示 */
+.tprow .pm .none{color:#8A8F98}
+.tprow .pm .low{color:#D97706}
+.tprow .pm .mid{color:#21865B}
+.tprow .pm .high{color:#3478C8}
 .tprow.lock{opacity:.65}
 #tp-left{font-size:13px;margin:8px 0 4px;color:var(--band);font-weight:700}
 .seg{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-bottom:6px}
@@ -474,19 +479,28 @@ html[data-theme="parchment"] #ending.sheet{
 #ending .end-lead p{font-size:18px;line-height:32px}
 .end-sec{margin:20px 0 6px}
 .end-time{
-  display:flex;justify-content:center;align-items:center;
-  background:var(--card);border:1px dashed var(--rule);border-radius:2px;
-  padding:8px 6px;box-shadow:0 1px 0 var(--paper);overflow:hidden;
+  display:flex;flex-direction:column;gap:14px;
+  background:var(--card);border:1px solid var(--rule);border-radius:14px;
+  padding:18px 16px;box-shadow:0 3px 12px rgba(35,30,20,.06);overflow:hidden;
 }
-.end-pie-wrap{width:100%;max-width:560px;margin:0 auto;}
-.end-pie-svg{display:block;width:100%;height:auto;max-height:360px;margin:0 auto;overflow:visible;}
-.end-pie-label-name{font-family:var(--serif);font-size:13px;font-weight:700;fill:var(--ink);}
-.end-pie-label-pct{font-family:var(--serif);font-size:12px;font-weight:700;fill:var(--faint);}
-.end-pie-label path{opacity:.9;}
+.end-pie-wrap{width:100%;max-width:320px;margin:0 auto;}
+.end-pie-svg{display:block;width:100%;height:auto;margin:0 auto;overflow:visible;}
+.end-pie-percent{font-family:var(--serif);font-size:10px;font-weight:700;fill:#fff;text-anchor:middle;dominant-baseline:middle;paint-order:stroke;stroke:rgba(0,0,0,.16);stroke-width:1.5px;stroke-linejoin:round;}
+.end-pie-hole{fill:var(--card);}
+.end-pie-center-kicker{font-family:var(--sans);font-size:9px;letter-spacing:.12em;fill:var(--faint);text-anchor:middle;}
+.end-pie-center-total{font-family:var(--serif);font-size:22px;font-weight:700;fill:var(--ink);text-anchor:middle;}
+.end-pie-legend{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px 14px;width:100%;}
+.end-pie-legend-item{display:grid;grid-template-columns:10px minmax(0,1fr);gap:8px;align-items:start;min-width:0;padding:8px 9px;border:1px solid var(--rule);border-radius:8px;background:var(--paper);}
+.end-pie-legend-dot{width:9px;height:9px;border-radius:50%;margin-top:5px;}
+.end-pie-legend-main{display:flex;justify-content:space-between;gap:8px;align-items:baseline;min-width:0;}
+.end-pie-legend-name{font-size:12px;font-weight:700;color:var(--ink);line-height:1.5;overflow-wrap:anywhere;}
+.end-pie-legend-pct{font-size:12px;font-weight:700;white-space:nowrap;color:var(--ink);font-variant-numeric:tabular-nums;}
+.end-pie-legend-value{font-size:11px;color:var(--faint);margin-top:2px;}
 @media(max-width:520px){
-  .end-time{padding:4px 0;}
-  .end-pie-label-name{font-size:11px;}
-  .end-pie-label-pct{font-size:10px;}
+  .end-time{padding:14px 10px;gap:12px;border-radius:10px;}
+  .end-pie-wrap{max-width:280px;}
+  .end-pie-legend{grid-template-columns:1fr;gap:6px;}
+  .end-pie-legend-item{padding:7px 9px;}
 }
 .end-sec-lab{
   font-family:var(--serif);font-size:12px;letter-spacing:.22em;
@@ -701,7 +715,7 @@ body.desk #tools-desk .btn{margin:0;text-align:center}
 
 <!-- 開場：理念、種子、讀檔 -->
 <div id="start" class="sheet">
-  <div class="start-ver">v5.3.65</div>
+  <div class="start-ver">v5.3.80</div>
   <div class="kicker">NOTEBOOK</div>
   <h1 class="brand-mark">JW-Life</h1>
   <div class="note">
@@ -1015,6 +1029,7 @@ function newState(name, ch){
     uniType: null, /* 國立 / 私立 */
     milType: null, milLeft: 0,
     health: ch.health, hpCap: 90,
+    _sportNeedReduction: 0, _activeBodyNeedReduction: 0,
     wit: ch.wit, love: ch.love, faith: ch.faith, bible: ch.bible, skill: ch.skill,
     baptisms: 0,
     tags,
@@ -1318,7 +1333,15 @@ function playerMeetsSkeSelf(){
 function spouseMeetsSke(){
   if (!S.partner || S.partner.stage !== 'married' || !S.partner.jw) return false;
   if (datingYears() < 1.5) return false;
-  /* 配偶年資：見證人配偶自結婚起視為同期先驅；男性配偶另視為有僕人年資 */
+  /* 女性玩家申請 SKE：丈夫必須是正規先驅，且助理僕人／長老年資至少 1.5 年。 */
+  if (S.gender === '女'){
+    const husbandPioneer = !!S.partner.pioneer;
+    const husbandOfficeOk =
+      (husHas('助理僕人') && husYears('助理僕人') >= 1.5) ||
+      (husHas('長老') && husYears('長老') >= 1.5);
+    return husbandPioneer && husbandOfficeOk;
+  }
+  /* 男性玩家沿用原本的已婚配偶資格。 */
   return true;
 }
 function canApplySke(){
@@ -4046,8 +4069,8 @@ const TP_ITEMS = [
     lock: () => false,
     def: () => familyNeed52() },
   { id:'school', name:'上課讀書', cap:24,
-    hint:'提升專業能力。少於 14 點可能被約談。',
-    show: () => isStudent(), lock: () => false, def: () => 14 },
+    hint:'提升專業能力。少於 16 點可能被約談。',
+    show: () => isStudent(), lock: () => false, def: () => 16 },
   { id:'jobF', name:'全職工作', cap:28,
     hint:'少 1～2 點仍拿底薪；少於 14 點按比例；少於 14 點很可能丟工作。第 17 點起加班。',
     show: () => S.job && S.job.kind === 'full' && S.phase !== 'MIL', lock: () => false, def: () => 16 },
@@ -4088,10 +4111,12 @@ function bodyTime(alloc){
 function bodyNeed52(){
   if (!S) return 24;
   let n = 24;
-  if (S.health < 30) n = 28;
-  else if (S.health < 50) n = 26;
+  if (S.health < 40) n = 28;
+  else if (S.health < 60) n = 26;
+  if (S.age >= 50) n += 1;
   if (S.age >= 60) n += 1;
-  return clamp(n, 24, 30);
+  n -= (S._activeBodyNeedReduction || 0);
+  return clamp(n, 22, 30);
 }
 function familyNeed52(){
   let toddlerCount = 0;
@@ -4114,7 +4139,7 @@ function extraNeedOf(id){
 }
 function requiredTP(){
   const req = {};
-  if (isStudent()) req.school = 14 + extraNeedOf('school');
+  if (isStudent()) req.school = 16 + extraNeedOf('school');
   if (S.job && S.job.kind === 'full') req.jobF = 16 + extraNeedOf('jobF');
   if (S.job && S.job.kind === 'part') req.jobP = 8 + extraNeedOf('jobP');
   if (S.phase === 'MIL' && S.milType === 'alt') req.milA = 18;
@@ -4171,29 +4196,23 @@ function showTimeFeelHelp(plan){
   if (c) c.onclick = modalClose;
 }
 function bandClass(lab){
-  if (lab === '不足' || lab === '較少' || lab === '透支' || lab === '嚴重透支') return 'low';
+  if (lab === '無') return 'none';
+  if (lab === '較少' || lab === '不足' || lab === '透支' || lab === '嚴重透支') return 'low';
   if (lab === '較多') return 'high';
   return 'mid';
 }
 function bandLabel(id, v){
+  if (v <= 0) return '無';
   const req = requiredTP()[id];
-  if (id === 'body'){
-    const need = req || bodyNeed52();
-    if (v >= need) return '必要';
-    if (v >= 17) return '透支';
-    return '嚴重透支';
+  const target = (id === 'body') ? (req || bodyNeed52()) : req;
+  if (target != null){
+    if (v < target) return '較少';
+    if (v === target) return '正常';
+    return '較多';
   }
-  if (req != null){
-    if (v < req) return '不足';
-    if (v <= req + 1) return '基本';
-    if (v >= req + 5) return '較多';
-    return '正常';
-  }
-  if (v <= 0) return '沒有';
-  if (v <= 2) return '較少';
-  if (v <= 4) return '基本';
-  if (v >= 6) return '較多';
-  return '正常';
+  if (v < 3) return '較少';
+  if (v === 3) return '正常';
+  return '較多';
 }
 function toSettleScale(plan){
   /* v5：不再折成 15 點，計畫本身就是結算用的 52 點。 */
@@ -4425,8 +4444,7 @@ function estimateYearMoney(alloc){
   const tp = alloc || {};
   let inn = 0, out = 0;
   if (isStudent()){
-    let pocket = S.wealth === '富裕' ? 200000 : S.wealth === '貧窮' ? 30000 : 80000;
-    if (has('大學生')) pocket = Math.round(pocket * 0.7);
+    let pocket = S.wealth === '富裕' ? 200000 : S.wealth === '貧窮' ? 80000 : 130000;
     inn += pocket;
   }
   if (S.phase === 'MIL'){
@@ -4452,7 +4470,7 @@ function estimateYearMoney(alloc){
     let live = Math.round((mode.lo + (mode.hi - mode.lo) * t) * 10000);
     if (S.partner && S.partner.stage === 'married') live = Math.round(live * MARRIED_LIVE_MUL);
     if (isServiceAssign() && (S.service.kind === 'bethel' || S.service.kind === 'co')) live = Math.round(live * 0.35);
-    if (!S.job && !isServiceAssign()) live = Math.round(live * 0.7);
+    if (!hasRegularIncomeThisYear()) live = Math.round(live * 0.7);
     out += live;
   }
   if (has('大學生')) out += (S.uniType === '國立' ? 6 : 12) * 10000;
@@ -4460,7 +4478,21 @@ function estimateYearMoney(alloc){
   return { inn, out, net: inn - out };
 }
 function spouseIncomeBaseMid(p){
-  if (!p || !p.jobKind || p.jobKind === 'none') return 0;
+  if (!p) return 0;
+  /* 配偶若因與玩家共同從事全時服務而被設為 jobKind='none'，
+     預估仍依 serviceWith 計入相同服務津貼，與年度結算規則一致。 */
+  const servicePay = {
+    '分區監督':150000,
+    '分區監督的妻子':150000,
+    '伯特利成員':120000,
+    '臨時伯特利成員':120000,
+    '特別先驅':250000,
+    '臨時特別先驅':250000,
+    'LDC成員':250000,
+    'LDC臨時成員':250000
+  };
+  if (p.serviceWith && servicePay[p.serviceWith] != null) return servicePay[p.serviceWith];
+  if (!p.jobKind || p.jobKind === 'none') return 0;
   if (p.jobKind === 'co') return 150000;
   if (p.jobKind === 'bethel' || p.jobKind === 'tempBethel') return 120000;
   if (['tempSpecialPioneer','specialPioneer','tempLdc','ldc'].includes(p.jobKind)) return 250000;
@@ -4566,7 +4598,7 @@ function showAlloc(){
     }
     h += '<div id="tp-rows"></div>';
     const canPlayerFindJob = (S.phase === 'WORK' || S.phase === 'UNI' || S.phase === 'START') && !S.job && !isServiceAssign() && S.phase !== 'MIL' && (S._jobHuntCount || 0) < 3;
-    const canPartnerFindJob = !!(S.partner && S.partner.stage === 'married' && !isServiceAssign() && S.partner.jobKind !== 'co' && !['tempSpecialPioneer','specialPioneer','tempLdc','ldc','tempBethel','bethel'].includes(S.partner.jobKind) && (S.partner.jobKind === 'none' || S.partner.jobKind === 'part' || S.partner.jobKind === 'full') && (S.partner._jobHuntCount || 0) < 3);
+    const canPartnerFindJob = !!(S.partner && S.partner.stage === 'married' && !isServiceAssign() && S.partner.jobKind !== 'co' && !['tempSpecialPioneer','specialPioneer','tempLdc','ldc','tempBethel','bethel'].includes(S.partner.jobKind) && (S.partner.jobKind === 'none') && (S.partner._jobHuntCount || 0) < 3);
     if (canPlayerFindJob || canPartnerFindJob){
       const leftPlayer = 3 - (S._jobHuntCount || 0);
       const leftPartner = 3 - (S.partner && S.partner._jobHuntCount || 0);
@@ -4585,9 +4617,9 @@ function showAlloc(){
       const lab = bandLabel(it.id, v);
       row.innerHTML = '<div class="nm">' + it.name + '<small>' + (it.hint || '') + (requiredTP()[it.id] != null ? '　必要 ' + requiredTP()[it.id] : '') + '</small></div>' +
         '<div class="pm">' +
-        '<button type="button" class="pmb" data-minus="' + it.id + '"' + (lock || v <= itemFloor(it.id) ? ' disabled' : '') + '>−</button>' +
-        '<span class="val">' + v + '</span>' +
-        '<button type="button" class="pmb" data-plus="' + it.id + '"' + (lock || used >= TP_YEAR || v >= itemCapOf(it.id) ? ' disabled' : '') + '>+</button>' +
+        '<button type="button" class="pmb ' + bandClass(lab) + '" data-minus="' + it.id + '"' + (lock || v <= itemFloor(it.id) ? ' disabled' : '') + '>−</button>' +
+        '<span class="val ' + bandClass(lab) + '">' + v + '</span>' +
+        '<button type="button" class="pmb ' + bandClass(lab) + '" data-plus="' + it.id + '"' + (lock || used >= TP_YEAR || v >= itemCapOf(it.id) ? ' disabled' : '') + '>+</button>' +
         '<span class="lab ' + bandClass(lab) + '" style="font-size:11px;min-width:3.5em">' + lab + '</span></div>';
       rows.appendChild(row);
     });
@@ -4604,7 +4636,22 @@ function showAlloc(){
       b.onclick = () => { bumpTp(b.dataset.plus, 1); render(); };
     });
     const fj = $('tp-findjob');
-    if (fj) fj.onclick = () => findJobEvent(() => { S.tpPlan = carryAlloc(); showAlloc(); });
+    if (fj) fj.onclick = () => {
+      const playerCan = (S.phase === 'WORK' || S.phase === 'UNI' || S.phase === 'START') && !S.job && !isServiceAssign() && S.phase !== 'MIL' && (S._jobHuntCount || 0) < 3;
+      const partnerCan = !!(S.partner && S.partner.stage === 'married' && !isServiceAssign() && !['co','tempSpecialPioneer','specialPioneer','tempLdc','ldc','tempBethel','bethel'].includes(S.partner.jobKind) && S.partner.jobKind === 'none' && (S.partner._jobHuntCount || 0) < 3);
+      const done = () => { S.tpPlan = carryAlloc(); showAlloc(); };
+      if (playerCan && partnerCan){
+        ask('找工作', '要替誰找工作？', [
+          {t:'替我自己找工作', f:() => findJobEvent(done)},
+          {t:'替' + S.partner.name + '找工作', f:() => findPartnerJobEvent(done)},
+          {t:'先不找工作', f:() => showAlloc()}
+        ]);
+        return;
+      }
+      if (playerCan){ findJobEvent(done); return; }
+      if (partnerCan){ findPartnerJobEvent(done); return; }
+      findJobEvent(done);
+    };
     $('tp-ok').onclick = commitPlan;
     flashAct();
     board();
@@ -5046,6 +5093,7 @@ function afterSkeClassAssign(){
   addTag(as.tag, as.title);
   S.service = { kind: as.k, title: as.title, tag: as.tag, perm: false, until: S.age + as.years };
   S.job = null;
+  if (as.k === 'tsp') leaveCongregation();
   syncPartnerFullTimeService();
   const extra = as.k === 'bethel'
     ? '津貼更薄，但生活開銷會明顯下降。全時服務期間不能另外工作。'
@@ -5203,7 +5251,7 @@ function onAllocConfirm(alloc){
   if (isPublisher() && canWorship() && !has('停止傳道') && (alloc.worship || 0) <= 0){
     stepQ.push(evStopPreach);
   }
-  if (alloc.school != null && visibleItems().some(i => i.id === 'school') && alloc.school < 14){
+  if (alloc.school != null && visibleItems().some(i => i.id === 'school') && alloc.school < 16){
     stepQ.push(evSchoolLow);
   }
   if (S.job && S.job.kind === 'full' && (alloc.jobF || 0) < 14){
@@ -5295,7 +5343,7 @@ function evStopPreach(){
   }, {cls:'bad', title:'停止傳道', html});
 }
 function evSchoolLow(){
-  ask('課業警示', '學校注意到你的課業時間不夠（上課讀書少於 14 點）。這年要怎麼處理？', [
+  ask('課業警示', '學校注意到你的課業時間不夠（上課讀書少於 16 點）。這年要怎麼處理？', [
     {t:'向導師認錯，答應補上進度', f:() => {
       const g = addStat('skill', chance(70) ? 1 : 0, false);
       addStat('faith', -1, false);
@@ -5698,6 +5746,15 @@ function settleThenAdvance(){
   confirmContinue('這一年的結算', html, nextStep, {cls:'', title:'這一年的日記', html});
 }
 
+function hasRegularIncomeThisYear(){
+  if (isStudent()) return true;
+  if (S.phase === 'MIL') return true;
+  if (isServiceAssign()) return true;
+  if (yearPayJob()) return true;
+  if (S.partner && S.partner.stage === 'married' && spouseIncomeBase(S.partner) > 0) return true;
+  return false;
+}
+
 function settleYear(){
   const tp = S.tpPlan || S.pendTp || {};
   const notes = [];
@@ -5743,8 +5800,8 @@ function settleYear(){
   const sp = tp.sport || 0;
   addStat('health', sportHealth52(sp), false);
   if (sp >= 3 && chance(8)){
-    const up = 1; S.hpCap += up;
-    notes.push('因為持續運動，健康上限提高了 ' + up + ' 點。');
+    S._sportNeedReduction = ri(1, 2);
+    notes.push('運動帶來好狀態：下一回合基本生理需求點數降低 ' + S._sportNeedReduction + ' 點。');
   }
 
   const st = tp.study || 0;
@@ -5762,7 +5819,7 @@ function settleYear(){
   /* 專業能力退化：沒有全職／兼職工作，且精進自己少於 5 點時，連續每年加重 1 點。
      若本回合因失去工作事件而被迫沒有工作，則不算專業能力退化。最低維持 20。 */
   const hasWorkForSkill = !!(S.job && (S.job.kind === 'full' || S.job.kind === 'part'));
-  if (!S._jobLostThisYear && !hasWorkForSkill && gr < 5){
+  if (!S._jobLostThisYear && !hasWorkForSkill && gr < 5 && !(tp.school > 0)){
     S.skillDecayYears = (S.skillDecayYears || 0) + 1;
     const decay = S.skillDecayYears;
     const beforeSkillDecay = S.skill;
@@ -5793,8 +5850,7 @@ function settleYear(){
 
   /* ---- 金錢：先入帳再扣開銷 ---- */
   if (isStudent()){
-    let pocket = S.wealth === '富裕' ? 200000 : S.wealth === '貧窮' ? 30000 : 80000;
-    if (has('大學生')) pocket = Math.round(pocket * 0.7);
+    let pocket = S.wealth === '富裕' ? 200000 : S.wealth === '貧窮' ? 80000 : 130000;
     S.money += pocket;
     notes.push('家庭零用錢 +' + fmtMoney(pocket));
   }
@@ -5807,6 +5863,11 @@ function settleYear(){
     if (k === 'co') stip = 150000;
     S.money += stip;
     notes.push('服務津貼 +' + fmtMoney(stip));
+    /* 已婚且從事特別全時服務：配偶也有同額津貼，一併進入家庭存款。 */
+    if (S.partner && S.partner.stage === 'married'){
+      S.money += stip;
+      notes.push('配偶服務津貼 +' + fmtMoney(stip) + '（同額入帳）');
+    }
   } else if (S.phase === 'MIL'){
     const milPay = S.milType === 'alt' ? 120000 : 80000;
     S.money += milPay;
@@ -5848,9 +5909,9 @@ function settleYear(){
       live = Math.round(live * MARRIED_LIVE_MUL);
     }
     if (isServiceAssign() && (S.service.kind === 'bethel' || S.service.kind === 'co')) live = Math.round(live * 0.35);
-    if (!S.job && !isServiceAssign()){
+    if (!hasRegularIncomeThisYear()){
       live = Math.round(live * 0.7);
-      notes.push('目前沒有工作，生活費先按七成算。');
+      notes.push('目前沒有收入，生活費先按七成算。');
     }
     const hm = { simple:[-3,-2], normal:[-1,0], comfort:[1,2], enjoy:[3,4] }[S.lifeMode];
     if (hm && !(hm[0] === 0 && hm[1] === 0)) addStat('health', ri(hm[0], hm[1]), false);
@@ -6011,7 +6072,8 @@ function examUniversity(){
     {t:'報考', main:true, f:() => {
       const score = S.skill * witMul();
       const kind = score > 50 ? '國立' : '私立';
-      const resultHtml = '依目前的專業能力與悟性，你考上了<b class="hl">' + kind + '大學</b>。';
+      const tuition = (kind === '國立' ? 6 : 12) * 10000;
+      const resultHtml = '依目前的專業能力與悟性，你考上了<b class="hl">' + kind + '大學</b>。每年學費' + fmtMoney(tuition) + '。';
       confirmContinue('錄取結果', resultHtml, () => {
         ask('錄取通知', '要去就讀嗎？', [
           {t:'就讀' + kind + '大學', main:true, f:() => {
@@ -6063,7 +6125,7 @@ function highPayChance(){
   return clamp(p, 0, 0.72);
 }
 function yearPayJob(){
-  return (S && (S._jobPay || S.job)) || null;
+  return (S && S.job) || null;
 }
 function jobSearchFailChance(){
   const age = Math.floor(S.age || 0);
@@ -6289,6 +6351,8 @@ function beginYear(){
   S._jobPay = S.job ? { kind: S.job.kind, high: !!S.job.high } : null;
   if (!S.job) S._fullOtStreak = 0;
   S._extraNeed = {};
+  S._activeBodyNeedReduction = S._sportNeedReduction || 0;
+  S._sportNeedReduction = 0;
   divider();
   board();
   stepQ = [];
@@ -6476,14 +6540,21 @@ function endingProfile(id){
   return (data[id] || data.future)[key];
 }
 function endingWords(id){
-  return endingProfile(id);
+  /* 最後一篇日記固定使用舊版文字；愛心／信心版本只用在結局閱讀頁。 */
+  return ({
+    sick:{ cls:'bad', title:'日記停在這一頁', html:'身體一天比一天沉。有些話還沒寫完，筆卻拿不穩了。這本日記在這裡停住。' },
+    accident:{ cls:'bad', title:'沒有料到的一天', html:'那一天和平常沒有兩樣。事發的時候，你甚至來不及把這頁寫完。' },
+    tribulation:{ cls:'gold', title:'大患難開始了', html:'外面的消息一個接一個。聚會裡的人安靜下來。你合上這本日記，不知道下一頁還會不會用同一支筆。' },
+    future:{ cls:'gold', title:'六十五歲', html:'你走到了六十五歲。未來會怎樣，此刻還看不到結局。這本日記先合上。' },
+    infant:{ cls:'info', title:'夭折', html:'不幸地，你還沒有記憶便夭折了……' }
+  })[id] || { cls:'info', title:'日記的最後一頁', html:'' };
 }
 function lastPageThenEnd(id, extraHtml){
   if (S){ S.done = true; S.endId = id; }
   stepQ = [];
   const w = endingWords(id);
   const html = (extraHtml ? extraHtml : '') + '<p>' + w.html + '</p>';
-  pendingDiary(w.cls, w.title, html, () => revealEnding(id, w.html));
+  pendingDiary(w.cls, w.title, html, () => revealEnding(id));
 }
 function revealEnding(id, line){
   if (S){ S.done = true; S.endId = id; }
@@ -6497,7 +6568,10 @@ function revealEnding(id, line){
     document.body.classList.remove('playing');
     document.documentElement.classList.add('ending-open');
     document.body.classList.add('ending-open');
-    paintEnding(id, line);
+    const kindTitle = ({ infant:'夭折', sick:'生病過世', accident:'意外過世', tribulation:'大患難', future:'六十五歲' })[id] || id;
+    if (S && !(S.milestones || []).some(m => m.text === kindTitle)) milestone(kindTitle);
+    if (!(S && S._preview)) saveGame();
+    paintEnding(id, line, 'read');
     const el = $('ending');
     el.style.display = 'block';
     el.classList.add('enter');
@@ -6594,17 +6668,6 @@ function tagClass(t){
 function pieSvgText(text){
   return escText(String(text));
 }
-function pieLabelLayout(items, side, cy, top, bottom, minGap){
-  const arr = items.filter(x => (side === 'right' ? x.cos >= 0 : x.cos < 0))
-    .sort((a,b) => a.rawY - b.rawY);
-  const ys = arr.map(x => clamp(x.rawY, top, bottom));
-  for (let i = 1; i < ys.length; i++) ys[i] = Math.max(ys[i], ys[i-1] + minGap);
-  if (ys.length && ys[ys.length-1] > bottom){
-    ys[ys.length-1] = bottom;
-    for (let i = ys.length - 2; i >= 0; i--) ys[i] = Math.min(ys[i], ys[i+1] - minGap);
-  }
-  return arr.map((x,i) => Object.assign({}, x, {labelY:ys[i]}));
-}
 function paintTpPieHtml(){
   if (!S || !S.tpLife) return '<p class="end-empty">沒有留下時間分配的紀錄。</p>';
   const merged = {};
@@ -6618,7 +6681,7 @@ function paintTpPieHtml(){
   const sum = items.reduce((a,x) => a + x.v, 0);
   if (!sum) return '<p class="end-empty">沒有留下時間分配的紀錄。</p>';
 
-  const cx = 210, cy = 150, r = 88;
+  const cx = 160, cy = 112, r = 82, inner = 49;
   let angle = -Math.PI / 2;
   const slices = items.map(x => {
     const a0 = angle;
@@ -6628,38 +6691,42 @@ function paintTpPieHtml(){
     const mid = a0 + delta / 2;
     return Object.assign({}, x, {
       a0:a0, a1:a1, mid:mid,
-      cos:Math.cos(mid), sin:Math.sin(mid),
-      rawY:cy + Math.sin(mid) * (r + 24)
+      pct:x.v / sum * 100,
+      labelR:(r + inner) / 2
     });
   });
   const arc = (x) => {
     const x0 = cx + Math.cos(x.a0) * r, y0 = cy + Math.sin(x.a0) * r;
     const x1 = cx + Math.cos(x.a1) * r, y1 = cy + Math.sin(x.a1) * r;
+    const ix1 = cx + Math.cos(x.a1) * inner, iy1 = cy + Math.sin(x.a1) * inner;
+    const ix0 = cx + Math.cos(x.a0) * inner, iy0 = cy + Math.sin(x.a0) * inner;
     const large = (x.a1 - x.a0) > Math.PI ? 1 : 0;
-    return 'M ' + cx + ' ' + cy + ' L ' + x0.toFixed(2) + ' ' + y0.toFixed(2) +
-      ' A ' + r + ' ' + r + ' 0 ' + large + ' 1 ' + x1.toFixed(2) + ' ' + y1.toFixed(2) + ' Z';
+    return 'M ' + x0.toFixed(2) + ' ' + y0.toFixed(2) +
+      ' A ' + r + ' ' + r + ' 0 ' + large + ' 1 ' + x1.toFixed(2) + ' ' + y1.toFixed(2) +
+      ' L ' + ix1.toFixed(2) + ' ' + iy1.toFixed(2) +
+      ' A ' + inner + ' ' + inner + ' 0 ' + large + ' 0 ' + ix0.toFixed(2) + ' ' + iy0.toFixed(2) + ' Z';
   };
-  const left = pieLabelLayout(slices,'left',cy,28,272,30);
-  const right = pieLabelLayout(slices,'right',cy,28,272,30);
-  const positioned = left.concat(right);
-  const lines = positioned.map(x => {
-    const sx = cx + x.cos * r;
-    const sy = cy + x.sin * r;
-    const elbowX = x.cos >= 0 ? 312 : 108;
-    const tx = x.cos >= 0 ? 324 : 96;
-    const anchor = x.cos >= 0 ? 'start' : 'end';
-    const pct = Math.round(x.v / sum * 1000) / 10;
-    return '<g class="end-pie-label">' +
-      '<path d="M ' + sx.toFixed(1) + ' ' + sy.toFixed(1) + ' L ' + elbowX + ' ' + x.labelY.toFixed(1) + ' L ' + tx + ' ' + x.labelY.toFixed(1) + '" fill="none" stroke="' + x.c + '" stroke-width="1.2" />' +
-      '<circle cx="' + sx.toFixed(1) + '" cy="' + sy.toFixed(1) + '" r="2" fill="' + x.c + '" />' +
-      '<text x="' + tx + '" y="' + (x.labelY - 2).toFixed(1) + '" text-anchor="' + anchor + '" class="end-pie-label-name">' + pieSvgText(x.lab) + '</text>' +
-      '<text x="' + tx + '" y="' + (x.labelY + 14).toFixed(1) + '" text-anchor="' + anchor + '" class="end-pie-label-pct">' + pct + '%</text>' +
-      '</g>';
+  const paths = slices.map(x => '<path d="' + arc(x) + '" fill="' + x.c + '" stroke="var(--card)" stroke-width="3" stroke-linejoin="round" />').join('');
+  const percentages = slices.filter(x => x.pct >= 6).map(x => {
+    const tx = cx + Math.cos(x.mid) * x.labelR;
+    const ty = cy + Math.sin(x.mid) * x.labelR;
+    const pct = (Math.round(x.pct * 10) / 10).toFixed(x.pct < 10 ? 1 : 0) + '%';
+    return '<text class="end-pie-percent" x="' + tx.toFixed(1) + '" y="' + ty.toFixed(1) + '">' + pct + '</text>';
   }).join('');
-  const paths = slices.map(x => '<path d="' + arc(x) + '" fill="' + x.c + '" stroke="var(--paper2)" stroke-width="1.5" />').join('');
-  const svg = '<svg class="end-pie-svg" viewBox="0 0 420 300" role="img" aria-label="一生時間分配圓餅圖">' +
-    paths + lines + '</svg>';
-  return '<div class="end-time"><div class="end-pie-wrap">' + svg + '</div></div>';
+  const svg = '<svg class="end-pie-svg" viewBox="0 0 320 224" role="img" aria-label="一生時間分配甜甜圈圖，總計 ' + sum + ' 點">' +
+    paths + percentages +
+    '<circle class="end-pie-hole" cx="' + cx + '" cy="' + cy + '" r="' + (inner - 1) + '" />' +
+    '<text class="end-pie-center-kicker" x="' + cx + '" y="' + (cy - 7) + '">累計時間</text>' +
+    '<text class="end-pie-center-total" x="' + cx + '" y="' + (cy + 19) + '">' + sum + '</text>' +
+    '</svg>';
+  const legend = items.slice().sort((a,b) => b.v - a.v).map(x => {
+    const pct = (Math.round(x.v / sum * 1000) / 10).toFixed(1) + '%';
+    return '<div class="end-pie-legend-item">' +
+      '<span class="end-pie-legend-dot" style="background:' + x.c + '"></span>' +
+      '<div><div class="end-pie-legend-main"><span class="end-pie-legend-name">' + pieSvgText(x.lab) + '</span><span class="end-pie-legend-pct">' + pct + '</span></div>' +
+      '<div class="end-pie-legend-value">' + x.v + ' 點</div></div></div>';
+  }).join('');
+  return '<div class="end-time"><div class="end-pie-wrap">' + svg + '</div><div class="end-pie-legend" aria-label="時間分配詳細資料">' + legend + '</div></div>';
 }
 function lifeFilledPct(){
   if (!S) return 0;
@@ -6676,8 +6743,9 @@ function districtTrackLine(){
   if (S.gender === '女' && has('特別先驅')) return '地區服務走到特別先驅。';
   return '';
 }
-function paintEnding(id, line){
+function paintEnding(id, line, view){
   stepQ = []; actClear();
+  view = view || 'overview';
   const kindTitle = {
     infant:'夭折',
     sick:'生病過世',
@@ -6687,9 +6755,7 @@ function paintEnding(id, line){
   }[id] || id;
   const profile = endingProfile(id);
   const title = profile ? profile.title : kindTitle;
-  const desc = line || (profile ? profile.html : '');
-  if (S && !(S.milestones || []).some(m => m.text === kindTitle)) milestone(kindTitle);
-  if (!(S && S._preview)) saveGame();
+  const desc = profile ? profile.html : '';
 
   const app = $('app');
   if (app){
@@ -6703,19 +6769,32 @@ function paintEnding(id, line){
     : (id === 'future' || id === 'tribulation') ? 'tone-gold' : '';
   el.className = 'sheet enter ' + tone;
 
-  let body = '<div class="start-ver">v5.3.65</div>' +
-    '<div class="brand"><div class="kicker">THE LAST PAGE</div>' +
-    '<h1 class="brand-mark">JW-Life</h1></div>' +
-    '<p class="end-kind">' + escText(kindTitle) + (profile && profile.title !== kindTitle ? '｜' + escText(profile.title) : '') + '</p>' +
-    '<div class="note end-lead"><p>' + desc + '</p></div>';
-  const refs = endingReflections();
-  if (refs.length){
-    body += '<section class="end-sec"><div class="end-sec-lab">回顧這一生</div>';
-    refs.forEach(r => {
-      body += '<div class="end-trait"><h2>' + escText(r.title) + '</h2><p>' + escText(r.body) + '</p></div>';
-    });
-    body += '</section>';
+  if (view === 'read'){
+    let readBody = '<div class="start-ver">v5.3.80</div>' +
+      '<div class="brand"><div class="kicker">THE LAST PAGE</div>' +
+      '<h1 class="brand-mark">JW-Life</h1></div>' +
+      '<p class="end-kind">' + escText(kindTitle) + '</p>' +
+      '<div class="note end-lead"><h2>' + escText(title) + '</h2><p>' + desc + '</p></div>';
+    const refs = endingReflections();
+    if (refs.length){
+      readBody += '<section class="end-sec"><div class="end-sec-lab">回顧這一生</div>';
+      refs.forEach(r => {
+        readBody += '<div class="end-trait"><h2>' + escText(r.title) + '</h2><p>' + escText(r.body) + '</p></div>';
+      });
+      readBody += '</section>';
+    }
+    readBody += '<div class="end-actions"><button class="btn main" id="end-overview">確認，查看一生總覽</button></div>';
+    el.innerHTML = readBody;
+    const nextBtn = $('end-overview');
+    if (nextBtn) nextBtn.onclick = () => { paintEnding(id, line, 'overview'); el.scrollTop = 0; };
+    el.scrollTop = 0;
+    return;
   }
+
+  let body = '<div class="start-ver">v5.3.80</div>' +
+    '<div class="brand"><div class="kicker">LIFE OVERVIEW</div>' +
+    '<h1 class="brand-mark">JW-Life</h1></div>' +
+    '<p class="end-kind">一生總覽｜' + escText(kindTitle) + '</p>';
 
   if (S){
     const hpTone = S.health <= 0 ? 'lo' : endTone(S.health, S.hpCap);
@@ -6770,11 +6849,13 @@ function paintEnding(id, line){
   }
 
   body += '<div class="end-actions">' +
-    '<button class="btn main" id="end-new">再寫一本新的</button>' +
+    '<button class="btn main" id="end-read">返回結局閱讀頁</button>' +
+    '<button class="btn" id="end-new">再寫一本新的</button>' +
     (id !== 'infant' ? '<button class="btn" id="end-same">用同一個種子重來</button>' : '') +
     '</div>';
 
   el.innerHTML = body;
+  $('end-read').onclick = () => { paintEnding(id, line, 'read'); el.scrollTop = 0; };
   $('end-new').onclick = () => location.href = location.pathname;
   const sm = $('end-same');
   if (sm) sm.onclick = () => location.href = location.pathname + '?seed=' + encodeURIComponent(SEED);
@@ -7173,7 +7254,7 @@ function setAllocTools(onAfter){
   });
   bind('job', () => {
     const playerCan = (S.phase === 'WORK' || S.phase === 'UNI' || S.phase === 'START') && !S.job && !isServiceAssign() && S.phase !== 'MIL' && (S._jobHuntCount || 0) < 3;
-    const partnerCan = !!(S.partner && S.partner.stage === 'married' && !isServiceAssign() && !['co','tempSpecialPioneer','specialPioneer','tempLdc','ldc','tempBethel','bethel'].includes(S.partner.jobKind) && (S.partner.jobKind === 'none' || S.partner.jobKind === 'part' || S.partner.jobKind === 'full') && (S.partner._jobHuntCount || 0) < 3);
+    const partnerCan = !!(S.partner && S.partner.stage === 'married' && !isServiceAssign() && !['co','tempSpecialPioneer','specialPioneer','tempLdc','ldc','tempBethel','bethel'].includes(S.partner.jobKind) && (S.partner.jobKind === 'none') && (S.partner._jobHuntCount || 0) < 3);
     if (playerCan && partnerCan){
       ask('找工作', '要替誰找工作？', [
         {t:'替我自己找工作', f:() => findJobEvent(() => { S.tpPlan = null; showAlloc(); })},
