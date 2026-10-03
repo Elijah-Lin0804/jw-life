@@ -899,7 +899,7 @@ let _curBody = null;
 function has(tag){ return !!(S && S.tags[tag]); }
 function isStudent(st){ st = st || S; return !!(st.tags && st.tags['大學生']); }
 function canWorship(st){ st = st || S; return !!(st.tags['第二代'] || st.tags['聖經學生'] || st.tags['未受浸傳道員'] || st.tags['傳道員']); }
-function  (st){ return canWorship(st || S); }
+function hasFaithTrack(st){ return canWorship(st || S); }
 function honorific(){ return S.gender === '男' ? '先生' : '小姐'; }
 function chainRoot(id){ return String(id || '').split('-')[0]; }
 function isPreachStart(id){ return /^P\d+$/.test(id || ''); }
