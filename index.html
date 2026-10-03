@@ -719,11 +719,13 @@ body.desk #tools-desk .btn{margin:0;text-align:center}
   <div class="kicker">NOTEBOOK</div>
   <h1 class="brand-mark">JW-Life</h1>
   <div class="note">
-    <p>從十九歲開始，每年你有 52 點時間（大約一週一點）。</p>
-    <p>信仰、功課、工作、身體，不能樣樣都顧。</p>
-    <p>寫在這本日記裡的，就是你走過的路。</p>
-    <p>主線是耶和華見證人的信仰進程。</p>
-    <p>你也可以過一般人的生活。</p>
+    <p>詩篇39:4</p>
+    <p>「耶和華​啊，求​你​讓​我​知道​自己​的​結局
+    <p>曉得​自己​到底​有​多少​日子，讓​我​明白​我​的​生命​轉瞬即逝。」
+    <p></p>
+    <p>這是你從19歲開始寫下的日記。</p>
+    <p>每年(每回合)有52點時間可以分配。</p>
+    <p>最多寫到65歲。</p>
   </div>
   <div class="field"><label>版面</label>
     <div class="choice-row" id="start-desk">
@@ -877,8 +879,8 @@ const FAMILY_SUBSIDY = {
 };
 function startMoneyOf(w){
   if (w === '富裕') return 200000;
-  if (w === '貧窮') return 0;
-  return 20000;
+  if (w === '貧窮') return 50000;
+  return 100000;
 }
 const LIFE_MODE = {
   simple: { n:'極簡', lo:9.0, hi:16.0 },
@@ -897,7 +899,7 @@ let _curBody = null;
 function has(tag){ return !!(S && S.tags[tag]); }
 function isStudent(st){ st = st || S; return !!(st.tags && st.tags['大學生']); }
 function canWorship(st){ st = st || S; return !!(st.tags['第二代'] || st.tags['聖經學生'] || st.tags['未受浸傳道員'] || st.tags['傳道員']); }
-function hasFaithTrack(st){ return canWorship(st || S); }
+function  (st){ return canWorship(st || S); }
 function honorific(){ return S.gender === '男' ? '先生' : '小姐'; }
 function chainRoot(id){ return String(id || '').split('-')[0]; }
 function isPreachStart(id){ return /^P\d+$/.test(id || ''); }
@@ -977,7 +979,7 @@ function rollChildhood(){
     bible += ri(5, 10);
     lines.push('你們家一直以來都信奉傳統信仰，雖然你不太喜歡那些習俗，但那早已是你生活理所當然的一部份了。');
   }
-  if (wit > 110) lines.push('你自幼天賦聰穎。');
+  if (wit > 110) lines.push('你自幼天賦聰穎，學什麼都比別人快。');
 
   love = clamp(love, 0, 100);
   faith = clamp(faith, 0, 100);
@@ -1157,7 +1159,7 @@ function askPregnancyServiceChange(then){
   if (!role){ then(); return; }
   leaveExclusiveService();
   board();
-  ask('服務身分轉換', '你們確認即將成為父母。' + role + '身分需要結束。要改做正規先驅嗎？', [
+  ask('服務身分轉換', '你們即將成為父母。' + role + '身分需要結束。要改做正規先驅嗎？', [
     {t:'做正規先驅', f:() => {
       addTag('正規先驅', '成為正規先驅');
       pendingDiary('gold', '正規先驅', '你結束' + role + '身分，改做正規先驅。', then);
@@ -1179,7 +1181,7 @@ function askReturnPioneer(then){
     }},
     {t:'先不做', f:() => {
       if (S.partner) S.partner.pioneer = false;
-      pendingDiary('info', '正規先驅', both ? '你們先不掛正規先驅。' : '你先不掛正規先驅。', then);
+      pendingDiary('info', '正規先驅', both ? '你們先不做正規先驅。' : '你先不做正規先驅。', then);
     }}
   ]);
 }
@@ -1603,8 +1605,8 @@ function r(id, p, text, fx, extra, follow){
 /* 傳道續關共用題庫 */
 const PLOT_BEATS = {
   1:[
-    {id:'v-disaster', n:'續訪：天災與末期徵象', t:'幾次拜訪後，你看出{npc}其實很關心最近的天災。', a:'打開聖經，指出這些末期徵象早寫在預言裡', aok:'這引起了好奇。{npc}答應開始聖經課程。', ano:'對方覺得只是巧合，這次不想再聽。', b:'先聽對方擔心什麼，再讀相關經文', bok:'{npc}說想再多知道一點。課程開始了。', bno:'對方心情很亂，這次不想談聖經。'},
-    {id:'v-answer', n:'續訪：聖經對上疑問', t:'再見面時，{npc}把人生、家庭或社會上的疑問問出來。', a:'用聖經對上對方真正卡住的那題', aok:'對方說這些話正好答到他的疑問。', ano:'對方覺得經文對不上現實。', b:'先讓對方把話說完再打開聖經', bok:'說完後對方比較聽得進去，願意開始課程。', bno:'越說越激動，這次沒讀成。'},
+    {id:'v-disaster', n:'續訪：天災人禍', t:'{npc}對最近新聞上看到的天災人禍感到很難受', a:'打開提摩太後書第3章，說明聖經早已預告最後的日子會看見這些事', aok:'這引起了{npc}的好奇，想要多了解看看。', ano:'對方覺得這樣的事一直都有，沒什麼特別。', b:'挑選其中一件對方可能特別關心的事件多聊聊', bok:'聽到了更多{npc}的心聲，挑選了適合的一課討論', bno:'但對方沒有更多想法，只好匆匆結束對話'},
+    {id:'v-answer', n:'續訪：聖經也是人寫的', t:'再見面時，{npc}把人生、家庭或社會上的疑問問出來。', a:'用聖經對上對方真正卡住的那題', aok:'對方說這些話正好答到他的疑問。', ano:'對方覺得經文對不上現實。', b:'先讓對方把話說完再打開聖經', bok:'說完後對方比較聽得進去，願意開始課程。', bno:'越說越激動，這次沒讀成。'},
     {id:'v-conduct', n:'續訪：受你的言行吸引', t:'{npc}說他願意再見面，其實是因為看你怎麼對待人。', a:'把榮耀歸給上帝，並邀對方一起讀', aok:'對方點頭，課程約下來了。', ano:'對方把你理想化，一看到你累就失望。', b:'介紹其他弟兄姐妹給對方認識', bok:'對方發現不是只有你這樣，願意開始學。', bno:'對方只想跟你做朋友。'},
     {id:'v-exist', n:'續訪：難以相信上帝存在', t:'{npc}直說：如果有上帝，為什麼世界這個樣子？', a:'打開創造與希望的經文', aok:'對方沒有立刻信，但願意把聖經打開來看。', ano:'對方覺得這是安慰人的話。', b:'先承認這問題你也認真想過', bok:'對方覺得你沒有敷衍，答應再約成課程。', bno:'對方說這種問題沒答案。'},
     {id:'v-care', n:'續訪：難以相信上帝關心自己', t:'{npc}問：就算有上帝，他會關心我這種人嗎？', a:'讀上帝留意個人的記載', aok:'對方第一次覺得「被看見」可以想一想。', ano:'對方說那是寫給別人看的。', b:'安靜聽完對方為什麼覺得自己不配', bok:'對方把心裡的話倒出來，答應開始讀。', bno:'對方把情緒收起來。'},
@@ -1691,13 +1693,13 @@ function buildPreachChain(prefix, spec){
     when: S => spec.when(S),
     onStart: S => { ensurePendingStudent(spec); },
     options:[
-      {id:'A', text: spec.a || '邀請對方學習聖經', results:[
-        r('A1', PREACH_START_OK, spec.ok || '對方願意再聊聊聖經。', {faith:1}, 'addStudent', 'PX-1'),
+      {id:'A', text: spec.a || '直接介紹聖經課程', results:[
+        r('A1', PREACH_START_OK, spec.ok || '對方願意了解看看。', {faith:1}, 'addStudent', 'PX-1'),
         r('A2', 100 - PREACH_START_OK, spec.no || '對方禮貌地結束了話題。', {faith:-1})
       ]},
-      {id:'B', text: spec.b || '先當朋友，把話聽完', results:[
-        r('B1', PREACH_START_OK, spec.ok2 || '談話很自然，對方留下聯絡方式。', {faith:1, love:1}, 'addStudent', 'PX-1'),
-        r('B2', 100 - PREACH_START_OK, spec.no2 || '對方笑一笑就走開了。', {faith:-1})
+      {id:'B', text: spec.b || '先聊聊，再找機會引到聖經話題', results:[
+        r('B1', PREACH_START_OK, spec.ok2 || '談話很自然，順勢交換了聯絡方式。', {faith:1, love:1}, 'addStudent', 'PX-1'),
+        r('B2', 100 - PREACH_START_OK, spec.no2 || '聊著聊著就結束了。', {faith:-1})
       ]}
     ]
   }];
@@ -7555,12 +7557,12 @@ $('btn-new').onclick = () => {
     '<div class="field"><label>你的名字</label><input id="in-name" maxlength="10" placeholder="寫在日記封面"></div>' +
     '<button class="btn main" id="btn-go">從十九歲這一年寫起 ▸</button>';
   $('btn-go').onclick = () => {
-    const nm = ($('in-name').value || '').trim() || '無名氏';
+    const nm = ($('in-name').value || '').trim() || '我';
     S = newState(nm, ch);
     $('start').style.display = 'none';
     $('app').classList.add('on');
     document.body.classList.add('playing');
-    card('gold', '日記的第一頁', '你逐漸長大，有越來越多選擇要自己做，請好好善用一生寶貴的時光，創造出只屬於你的人生軌跡。');
+    card('gold', '日記的第一頁', '高中即將畢業了，未來要做什麼呢？雖然目前還看不清楚，但現在要做的每個決定，都要對自己負責！我要一一記錄在這本日記上，這就是我的人生軌跡。');
     beginYear();
   };
 };
